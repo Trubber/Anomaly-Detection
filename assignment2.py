@@ -4,9 +4,9 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 
-training = np.load(r"D:\School\Machine Learning\KDD99\training_normal.npy")
-testingNormal = np.load(r"D:\School\Machine Learning\KDD99\testing_normal.npy")
-testingAttack = np.load(r"D:\School\Machine Learning\KDD99\testing_attack.npy")
+training = np.load(r".\KDD99\training_normal.npy")
+testingNormal = np.load(r".\KDD99\testing_normal.npy")
+testingAttack = np.load(r".\KDD99\testing_attack.npy")
 
 scale = StandardScaler()
 scaled_data = scale.fit_transform(training)

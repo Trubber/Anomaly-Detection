@@ -78,13 +78,32 @@ class KMeans:
                 break
             else:
                 self.centroids = np.array(cluster_centers)
+        
+        #Performance Metrics
+        '''
+        tp= 0
+        fp = 0
+        tn = 0
+        fn = 0
+
+
+        tpr = tp / (fn + tp)
+        fpr = fp / (tn + fp)
+        accuracy = (tp + tn) / (tp + tn + fp + fn)
+        f1_score = 2*tp / (2*tp + fp + fn)
+        print("TPR =" + tpr)
+        print("FPR =" + fpr)
+        print("Accuracy =" + accuracy)
+        print("F-1 Score =" + f1_score)
+        '''
 
         return Y
     
 def main():
-    random_test = np.random.randint(0, 100, (100, 2))
-    kmeans = KMeans(k=5)
-    labels = kmeans.fit(random_test)
+    #random_test = np.random.randint(0, 100, (100, 2))
+    random_test = testingNormalPCA
+    kmeans = KMeans(k=10)
+    labels = kmeans.fit(random_test, 200)
 
     plt.scatter(random_test[:, 0], random_test[:, 1], c=labels)
     plt.scatter(kmeans.centroids[:, 0], kmeans.centroids[:, 1], c=range(len(kmeans.centroids)), marker="*", s=200)

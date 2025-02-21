@@ -104,7 +104,7 @@ class KMeans:
         return Y
     
 
-class ownDBSCAN:
+class DBSCAN:
     '''
     # A DBSCAN class that contains the functions to preform a DBSCAN given specific data\n
     Epsilon: Default value of .5, This is used to determine how far from a core point is part of a given cluster\n
@@ -171,6 +171,17 @@ class ownDBSCAN:
 
         return 1
     
+    #A functions that just tells how many points are clustered versus how many aren't
+    def getAmountInCluster(self):
+        notClustered = Clustered = 0
+        for label in self.labels:
+            if label >= 1:
+                Clustered += 1
+            else:
+                notClustered += 1
+        
+        return [Clustered, notClustered]
+    
 
 def main():
 
@@ -181,6 +192,8 @@ def main():
     dataGraph(training, testingNormal)
 
     testingNormalPCA = PCAcalcs(training, testingNormal)
+    testingAttackPCA = PCAcalcs(training, testingAttack)
+
     kmeans = KMeans(k=10)
     labels = kmeans.fit(testingNormalPCA, 200)
 
@@ -188,11 +201,29 @@ def main():
     plt.scatter(kmeans.centroids[:, 0], kmeans.centroids[:, 1], c="black", marker="*", s=200)
     plt.show()
 
-    DBs = ownDBSCAN(epsilon=.7, minPoints=6)
+    DBs = DBSCAN(epsilon=.7, minPoints=6)
     DBs.cluster(testingNormalPCA)
-
+    TruePosOrFalseNeg = DBs.getAmountInCluster()
+    TP = TruePosOrFalseNeg[0] 
+    FN = TruePosOrFalseNeg[1]
     plt.scatter(testingNormalPCA[:,0], testingNormalPCA[:,1], marker='.', c=DBs.getLabels(), cmap='rainbow')
     plt.show()
+
+    DBs.cluster(testingAttackPCA)
+    holder = DBs.getAmountInCluster()
+    FP = holder[0]
+    TN = holder[1]
+
+    tpr = TP / (FN + TP)
+    fpr = FP / (TN + FP)
+    accuracy = (TP + TN) / (TP + TN + FP + FN)
+    f1_score = (2*TP) / (2*TP + FP + FN)
+    print("TPR = {tpr}", tpr)
+    print("FPR = {fpr}", fpr)
+    print("Accuracy = {acc}", accuracy)
+    print("F-1 Score = {f1}", f1_score)
+    
+
 
 main()
 

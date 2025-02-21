@@ -18,6 +18,8 @@ print(pca.get_feature_names_out())
 
 testingNormalScaled = scale.transform(testingNormal)
 testingNormalPCA = pca.transform(testingNormalScaled)
+testingAttackScaled = scale.transform(testingAttack)
+testingAttackPCA = pca.transform(testingAttackScaled)
 
 
 #plt.show()
@@ -33,8 +35,9 @@ class KMeans:
     The value k represents the number of clusters that will be made, the default given is 3
     The centroids haven't been randomly initialized yet and as such the variable has been left empty for now
     '''
-    def __init__(self, k=3):
+    def __init__(self, k=3, t=0.5):
         self.k = k
+        self.t = t
         self.centroids = None
 
     @staticmethod
@@ -78,15 +81,23 @@ class KMeans:
                 break
             else:
                 self.centroids = np.array(cluster_centers)
-        
-        #Performance Metrics
-        '''
+
         tp= 0
         fp = 0
         tn = 0
         fn = 0
+        '''
+        for i, data_point in enumerate(X):
+            distance = KMeans.euclidean_distance(data_point, self.centroids)
+            cluster = np.argmin(distance)
+            distance = KMeans.euclidean_distance(data_point, cluster)
+            if distance < self.t:
+                tn += 1
+        '''            
 
 
+        #Performance Metrics
+        '''
         tpr = tp / (fn + tp)
         fpr = fp / (tn + fp)
         accuracy = (tp + tn) / (tp + tn + fp + fn)
@@ -101,12 +112,12 @@ class KMeans:
     
 def main():
     #random_test = np.random.randint(0, 100, (100, 2))
-    random_test = testingNormalPCA
+    random_test = testingAttackPCA
     kmeans = KMeans(k=10)
     labels = kmeans.fit(random_test, 200)
 
     plt.scatter(random_test[:, 0], random_test[:, 1], c=labels)
-    plt.scatter(kmeans.centroids[:, 0], kmeans.centroids[:, 1], c=range(len(kmeans.centroids)), marker="*", s=200)
+    plt.scatter(kmeans.centroids[:, 0], kmeans.centroids[:, 1], c="black", marker="*", s=200)
 
     plt.show()
 

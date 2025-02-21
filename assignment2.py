@@ -182,8 +182,10 @@ def main():
 
     testingNormalPCA = PCAcalcs(training, testingNormal)
     kmeans = KMeans(k=10)
+    labels = kmeans.fit(testingNormalPCA, 200)
 
-    plt.scatter(kmeans.centroids[:, 0], kmeans.centroids[:, 1], c="black", marker="*", s=200, c=kmeans.fit(testingNormalPCA, 200))
+    plt.scatter(testingNormalPCA[:, 0], testingNormalPCA[:, 1], c=labels)
+    plt.scatter(kmeans.centroids[:, 0], kmeans.centroids[:, 1], c="black", marker="*", s=200)
     plt.show()
 
     DBs = ownDBSCAN(epsilon=.7, minPoints=6)

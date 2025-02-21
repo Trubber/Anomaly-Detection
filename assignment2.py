@@ -3,32 +3,25 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
+#Function used to graph data using data
+def dataGraph(dataToScale, dataToGraph):
+    
+    finalData = PCAcalcs(dataToScale, dataToGraph)
 
-training = np.load(r".\KDD99\training_normal.npy")
-testingNormal = np.load(r".\KDD99\testing_normal.npy")
-testingAttack = np.load(r".\KDD99\testing_attack.npy")
+    plt.grid(True)
+    plt.scatter(finalData[:, 0], finalData[:, 1])
 
-scale = StandardScaler()
-scaled_data = scale.fit_transform(training)
+    plt.show()
 
+#Function used to scale the data to 2D
+def PCAcalcs(dataToScale, dataToConvert):
+    scale = StandardScaler()
+    scaled_data = scale.fit_transform(dataToScale)
 
-pca = PCA(n_components=2)
-pca.fit(scaled_data)
-print(pca.get_feature_names_out())
-
-testingNormalScaled = scale.transform(testingNormal)
-testingNormalPCA = pca.transform(testingNormalScaled)
-testingAttackScaled = scale.transform(testingAttack)
-testingAttackPCA = pca.transform(testingAttackScaled)
-
-
-#plt.show()
-plt.xlabel("Test x")
-plt.ylabel("Test y")
-plt.grid(True)
-plt.scatter(testingNormalPCA[:, 0], testingNormalPCA[:, 1])
-
-plt.show()
+    pca = PCA(n_components=2)
+    pca.fit(scaled_data)
+    
+    return pca.transform(scale.transform(dataToConvert))
 
 class KMeans:
     '''
@@ -110,15 +103,93 @@ class KMeans:
 
         return Y
     
+
+class ownDBSCAN:
+    '''
+    # A DBSCAN class that contains the functions to preform a DBSCAN given specific data\n
+    Epsilon: Default value of .5, This is used to determine how far from a core point is part of a given cluster\n
+    minPoints: Default value of 5, Used to determine the minimum amount of neighbors within range to determine if a given point is a core point\n
+    labels: Given Labels to help keep track of specific
+    '''
+    def __init__(self, epsilon=0.5, minPoints=5):
+        self.epsilon = epsilon 
+        self.minPoints = minPoints
+        self.labels = None  
+
+    def getLabels(self):
+        #Just a function to get labels
+        return self.labels
+
+    @staticmethod
+    def getNeighbors(self, dataPoint, data):
+
+        neighbors = []
+
+        for i, d in enumerate(data):
+            #Finds the distance from the given dataPoint
+            distance = np.linalg.norm(dataPoint - d)
+
+            #Checks the distance to see if it's within the epsilon value
+            if(distance <= self.epsilon and distance != 0):
+                neighbors.append(i)
+
+        return neighbors
+
+    #Cluster points through DBSCAN and return which point belongs to which cluster, returns 1 if successful
+    def cluster(self, data):
+        #Creates an array of labels starting at 0 indicating if a point is in a cluster
+        self.labels = np.zeros(data.shape[0])
+        cluster = 0
+
+        for labelIndex, dataPoint in enumerate(data):
+            if self.labels[labelIndex] != 0:
+                #point is already assigned to the cluster
+                continue
+            
+            #Gets the neighbors for the given dataPoint
+            neighbors = self.getNeighbors(self, dataPoint, data)
+
+            #Checks to see if the given neighbor is a core point
+            if len(neighbors) >= self.minPoints:
+                cluster += 1
+                self.labels[labelIndex] = cluster
+
+                #Goes through the neighbors
+                for i in neighbors:
+                    #If a neighor already is in a cluster, skip it
+                    if self.labels[i] != 0:
+                        continue
+
+                    self.labels[i] = cluster
+
+                    #Include border points also into the cluster
+                    borderNeighbors = self.getNeighbors(self, data[i], data)
+                    #checks to see if the neighbor's neighbor itself is a core point
+                    if(len(borderNeighbors) >= self.minPoints):
+                        #Adds the border Neighbor to the neighbors to get it's neighbors
+                        neighbors += borderNeighbors
+
+        return 1
+    
+
 def main():
-    #random_test = np.random.randint(0, 100, (100, 2))
-    random_test = testingAttackPCA
+
+    training = np.load(r".\KDD99\training_normal.npy")
+    testingNormal = np.load(r".\KDD99\testing_normal.npy")
+    testingAttack = np.load(r".\KDD99\testing_attack.npy")
+
+    dataGraph(training, testingNormal)
+
+    testingNormalPCA = PCAcalcs(training, testingNormal)
     kmeans = KMeans(k=10)
-    labels = kmeans.fit(random_test, 200)
 
-    plt.scatter(random_test[:, 0], random_test[:, 1], c=labels)
-    plt.scatter(kmeans.centroids[:, 0], kmeans.centroids[:, 1], c="black", marker="*", s=200)
+    plt.scatter(kmeans.centroids[:, 0], kmeans.centroids[:, 1], c="black", marker="*", s=200, c=kmeans.fit(testingNormalPCA, 200))
+    plt.show()
 
+    DBs = ownDBSCAN(epsilon=.7, minPoints=6)
+    DBs.cluster(testingNormalPCA)
+
+    plt.scatter(testingNormalPCA[:,0], testingNormalPCA[:,1], marker='.', c=DBs.getLabels(), cmap='rainbow')
     plt.show()
 
 main()

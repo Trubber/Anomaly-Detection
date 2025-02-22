@@ -203,7 +203,7 @@ def main():
     testingNormalPCA = PCAcalcs(training, testingNormal)
     testingAttackPCA = PCAcalcs(training, testingAttack)
 
-    kmeans = KMeans(k=10)
+    kmeans = KMeans()
     labels = kmeans.fit(testingNormalPCA, 200)
 
     plt.scatter(testingNormalPCA[:, 0], testingNormalPCA[:, 1], c=labels)
@@ -211,7 +211,7 @@ def main():
     plt.show()
 
     
-    kmeans = KMeans(k=10)
+    kmeans = KMeans()
     labels = kmeans.fit(testingAttackPCA, 200)
 
     plt.scatter(testingAttackPCA[:, 0], testingAttackPCA[:, 1], c=labels)
@@ -219,6 +219,7 @@ def main():
     plt.show()
 
 
+    #Hyperparameter testing for the value of k
     '''
     silhouette_scores = []
     for k in range(3, 15, 2):
@@ -231,6 +232,22 @@ def main():
     plt.ylabel("Silhouette Score")
     plt.show()
     '''
+
+    #Hyperparameter testing for the value of t
+    '''
+    silhouette_scores = []
+    t_vals = np.arange(0.1, 1.1, 0.1)
+    for i in range(len(t_vals)):
+        test_means = KMeans(3, t_vals[i], metrics=False)
+        labels = test_means.fit(testingNormalPCA)
+        silhouette_scores.append(silhouette_score(testingNormalPCA, labels, metric='euclidean'))
+    
+    plt.plot(t_vals, silhouette_scores)
+    plt.xlabel("t")
+    plt.ylabel("Silhouette Score")
+    plt.show()
+    '''
+    
 
     DBs = DBSCAN(epsilon=.7, minPoints=6)
     DBs.cluster(testingNormalPCA)

@@ -192,6 +192,27 @@ class DBSCAN:
         return [Clustered, notClustered]
     
 
+#A functions to assist with hypertuning Epsilon value for DBScan
+def testDBSCAN(eps, min, dataNormal, dataAttack):
+    DBs = DBSCAN(epsilon=eps, minPoints=min)
+    DBs.cluster(dataNormal)
+
+    TruePosOrFalseNeg = DBs.getAmountInCluster()
+    TP = TruePosOrFalseNeg[0] 
+    FN = TruePosOrFalseNeg[1]
+
+    DBs.cluster(dataAttack)
+
+    holder = DBs.getAmountInCluster()
+    FP = holder[0]
+    TN = holder[1]
+
+
+    accuracy = (TP + TN) / (TP + TN + FP + FN)
+    
+    return accuracy
+
+
 def main():
 
     training = np.load(r".\KDD99\training_normal.npy")
@@ -247,9 +268,19 @@ def main():
     plt.ylabel("Silhouette Score")
     plt.show()
     '''
-    
 
-    DBs = DBSCAN(epsilon=.7, minPoints=6)
+    #Epsilon hypertuning
+    '''
+    accuracyTest = []
+    epsValues = [.2, .4, .6, .8, 1.0]
+    accuracyTest.append(testDBSCAN(.2, 3, testingNormalPCA, testingAttackPCA))
+    accuracyTest.append(testDBSCAN(.4, 3, testingNormalPCA, testingAttackPCA))
+    accuracyTest.append(testDBSCAN(.6, 3, testingNormalPCA, testingAttackPCA))
+    accuracyTest.append(testDBSCAN(.8, 3, testingNormalPCA, testingAttackPCA))
+    accuracyTest.append(testDBSCAN(1.0, 3, testingNormalPCA, testingAttackPCA))
+    '''
+
+    DBs = DBSCAN(epsilon=.2, minPoints=3)
     DBs.cluster(testingNormalPCA)
     TruePosOrFalseNeg = DBs.getAmountInCluster()
     TP = TruePosOrFalseNeg[0] 
@@ -267,12 +298,11 @@ def main():
     accuracy = (TP + TN) / (TP + TN + FP + FN)
     f1_score = (2*TP) / (2*TP + FP + FN)
     print("DBScan Metrics")
-    print("TPR = {tpr}", tpr)
-    print("FPR = {fpr}", fpr)
-    print("Accuracy = {acc}", accuracy)
-    print("F-1 Score = {f1}", f1_score)
+    print(f"TPR = {tpr}")
+    print(f"FPR = {fpr}")
+    print(f"Accuracy = {accuracy}")
+    print(f"F-1 Score = {f1_score}\n")
     
 
 
 main()
-
